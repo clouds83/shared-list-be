@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String           @id @default(uuid())
+  email             String           @unique
+  firstName         String
+  lastName          String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  ownedSubscription Subscription?    @relation("OwnedSubscription")
+  subscriptionId    String?          @unique
+  subscription      Subscription?    @relation("UserSubscription", fields: [subscriptionId], references: [id], map: "UserSubscription_fk")
+  
+}
+
+model Subscription {
+  id                String           @id @default(uuid())
+  ownerId           String           @unique 
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  owner             User             @relation("OwnedSubscription", fields: [ownerId], references: [id])
+  user              User[]            @relation("UserSubscription")
+  shoppingList      ShoppingList?
+}
+
+model ShoppingList {
+  id                String       @id @default(uuid())
+  subscriptionId    String       @unique
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
+  items             Item[]
+}
+
+model Item {
+  id                String       @id @default(uuid())
+  shoppingListId    String
+  name              String
+  quantity          Int
+  unit              String
+  price1_name       String
+  price2_name       String
+  price3_name       String
+  price1            Float
+  price2            Float
+  price3            Float
+  category          String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  shoppingList      ShoppingList @relation(fields: [shoppingListId], references: [id])
+}
+
+// idea for more flexible schema
+// model User {
+//   id                String                @id @default(uuid())
+//   email             String             @unique
+//   firstName         String
+//   lastName         String
+//   createdAt         DateTime           @default(now())
+//   updatedAt         DateTime           @updatedAt
+
+//   ownerOf           Subscription?      @relation("UserOwnedSubscription") 
+//   participantIn     SubscriptionUser?  @relation("UserAsParticipant") 
+// }
+
+// model Subscription {
+//   id                String                @id @default(uuid())
+//   ownerId           Int                @unique
+//   createdAt         DateTime           @default(now())
+//   updatedAt         DateTime           @default(now())
+
+//   owner             User               @relation("UserOwnedSubscription", fields: [ownerId], references: [id])
+//   participants      SubscriptionUser[] @relation("SubscriptionParticipants") 
+//   shoppingLists     ShoppingList[]
+// }
+
+// model SubscriptionUser {
+//   id             String       @id @default(uuid())
+//   subscriptionId Int        
+//   userId         Int       @unique 
+//   createdAt      DateTime  @default(now())
+//   updatedAt      DateTime  @default(now())
+
+//   subscription   Subscription @relation("SubscriptionParticipants", fields: [subscriptionId], references: [id])
+//   user           User        @relation("UserAsParticipant", fields: [userId], references: [id])
+// }
+
+// model ShoppingList {
+//   id             String       @id @default(uuid())
+//   name           String
+//   subscriptionId Int
+//   createdAt      DateTime  @default(now())
+//   updatedAt      DateTime  @default(now())
+
+//   subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+//   items          Item[]
+// }
+
+// model Item {
+//   id             String       @id @default(uuid())
+//   name           String
+//   quantity       Int
+//   shoppingListId Int
+//   createdAt      DateTime  @default(now())
+//   updatedAt      DateTime  @default(now())
+
+//   shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id])
+// }
