@@ -13,13 +13,13 @@ model User {
   firstName         String
   lastName          String
   password          String
-  participantIn     String?  
+  subscriptionId    String?  
   createdAt         DateTime?        @default(now())
   updatedAt         DateTime?        @updatedAt
 
   @@map("users")
-  ownedSubscription             Subscription?   @relation("Owner")
-  participantInSubscription     Subscription?   @relation("Participant", fields: [participantIn], references: [id])
+  subscription        Subscription?   @relation("Subscription", fields: [subscriptionId], references: [id])
+  ownedSubscription   Subscription?   @relation("Owner")
 }
 
 model Subscription {
@@ -29,8 +29,8 @@ model Subscription {
   updatedAt         DateTime?        @updatedAt
 
   @@map("subscriptions")
+  users             User[]           @relation("Subscription")
   owner             User             @relation("Owner", fields: [ownerId], references: [id])
-  participants      User[]           @relation("Participant")
   shoppingList      ShoppingList?
 }
 
@@ -52,13 +52,13 @@ model Item {
   isBought          Boolean      @default(false)
   quantity          Int?
   unit              String?
-  price1Name        String
-  price2Name        String
-  price3Name        String
-  price1            Float
-  price2            Float
-  price3            Float
-  category          String
+  price1Name        String?
+  price2Name        String?
+  price3Name        String?
+  price1            Float?
+  price2            Float?
+  price3            Float?
+  category          String?
   createdAt         DateTime?    @default(now())
   updatedAt         DateTime?    @updatedAt
 

@@ -12,7 +12,7 @@ class CreateUserService {
   async execute({ firstName, lastName, email, password }: CreateUserRequest) {
     if (!email) throw new Error('Email incorrect')
 
-    // Check if user already exists
+    // check if user already exists
     const userAlreadyExists = await prismaClient.user.findFirst({
       where: {
         email,
@@ -23,10 +23,10 @@ class CreateUserService {
       throw new Error('User already exists')
     }
 
-    // Hash the password
+    // hash the password
     const passwordHash = await hash(password, 8)
 
-    // Create the user
+    // create the user
     const createdUser = await prismaClient.user.create({
       data: {
         firstName,
@@ -36,21 +36,31 @@ class CreateUserService {
       },
     })
 
-    // Create a subscription for the user
+    // create a subscription for the user
     const createdSubscription = await prismaClient.subscription.create({
       data: {
         ownerId: createdUser.id,
       },
     })
 
-    // Create a shopping list for the subscription
+    // update the user with the subscription ID
+    await prismaClient.user.update({
+      where: {
+        id: createdUser.id,
+      },
+      data: {
+        subscriptionId: createdSubscription.id,
+      },
+    })
+
+    // create a shopping list for the subscription
     const createdShoppingList = await prismaClient.shoppingList.create({
       data: {
         subscriptionId: createdSubscription.id,
       },
     })
 
-    // Return the created user with their subscription and shopping list
+    // return the created user with their subscription and shopping list
     return {
       ...createdUser,
       subscription: createdSubscription,
