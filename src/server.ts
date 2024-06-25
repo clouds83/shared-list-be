@@ -22,6 +22,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   })
 })
 
-app.listen(3333, () => {
+app.listen(3000, () => {
   console.log('Server is running on port 3000')
 })
