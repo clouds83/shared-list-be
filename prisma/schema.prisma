@@ -52,13 +52,13 @@ model Item {
   isBought          Boolean      @default(false)
   quantity          Int?
   unit              String?
+  category          String?
   price1Name        String?
   price2Name        String?
   price3Name        String?
   price1            Float?
   price2            Float?
   price3            Float?
-  category          String?
   createdAt         DateTime?    @default(now())
   updatedAt         DateTime?    @updatedAt
 
