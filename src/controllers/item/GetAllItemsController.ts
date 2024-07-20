@@ -15,18 +15,9 @@ class GetAllItemsController {
       },
     })
 
-    const { id: shoppingListId } = await prismaClient.shoppingList.findUnique({
-      where: {
-        subscriptionId,
-      },
-      select: {
-        id: true,
-      },
-    })
-
     const getAllItemsService = new GetAllItemsService()
 
-    const items = await getAllItemsService.execute(shoppingListId)
+    const items = await getAllItemsService.execute(subscriptionId)
 
     return res.json(items)
   }

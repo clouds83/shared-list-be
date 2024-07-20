@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// to create: npx prisma migrate dev --name init
+
 model User {
   id                String           @id @default(uuid())
   email             String           @unique
@@ -18,8 +20,8 @@ model User {
   updatedAt         DateTime?        @updatedAt
 
   @@map("users")
-  subscription        Subscription?   @relation("Subscription", fields: [subscriptionId], references: [id])
-  ownedSubscription   Subscription?   @relation("Owner")
+  subscription      Subscription?    @relation("Subscription", fields: [subscriptionId], references: [id])
+  ownedSubscription Subscription?    @relation("Owner")
 }
 
 model Subscription {
@@ -31,25 +33,14 @@ model Subscription {
   @@map("subscriptions")
   users             User[]           @relation("Subscription")
   owner             User             @relation("Owner", fields: [ownerId], references: [id])
-  shoppingList      ShoppingList?
-}
-
-model ShoppingList {
-  id                String       @id @default(uuid())
-  subscriptionId    String       @unique
-  createdAt         DateTime?    @default(now())
-  updatedAt         DateTime?    @updatedAt
-
-  @@map ("shopping_lists")
-  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
-  items             Item[]
+  items             Item[]           // Add this line
 }
 
 model Item {
-  id                String       @id @default(uuid())
-  shoppingListId    String
+  id                String           @id @default(uuid())
+  subscriptionId    String
   name              String
-  isBought          Boolean      @default(false)
+  isBought          Boolean          @default(false)
   quantity          Int?
   unit              String?
   category          String?
@@ -59,9 +50,9 @@ model Item {
   price1            Float?
   price2            Float?
   price3            Float?
-  createdAt         DateTime?    @default(now())
-  updatedAt         DateTime?    @updatedAt
+  createdAt         DateTime?        @default(now())
+  updatedAt         DateTime?        @updatedAt
 
   @@map ("items")
-  shoppingList      ShoppingList @relation(fields: [shoppingListId], references: [id])
+  subscription      Subscription     @relation(fields: [subscriptionId], references: [id]) // Updated relation
 }

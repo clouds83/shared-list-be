@@ -27,7 +27,7 @@ class CreateUserService {
     const passwordHash = await hash(password, 8)
 
     // create the user
-    const createdUser = await prismaClient.user.create({
+    const user = await prismaClient.user.create({
       data: {
         firstName,
         lastName,
@@ -37,35 +37,33 @@ class CreateUserService {
     })
 
     // create a subscription for the user
-    const createdSubscription = await prismaClient.subscription.create({
+    const subscription = await prismaClient.subscription.create({
       data: {
-        ownerId: createdUser.id,
+        ownerId: user.id,
       },
     })
 
     // update the user with the subscription ID
-    await prismaClient.user.update({
+    const updatedUser = await prismaClient.user.update({
       where: {
-        id: createdUser.id,
+        id: user.id,
       },
       data: {
-        subscriptionId: createdSubscription.id,
+        subscriptionId: subscription.id,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        subscriptionId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     })
 
-    // create a shopping list for the subscription
-    const createdShoppingList = await prismaClient.shoppingList.create({
-      data: {
-        subscriptionId: createdSubscription.id,
-      },
-    })
-
-    // return the created user with their subscription and shopping list
-    return {
-      ...createdUser,
-      subscription: createdSubscription,
-      shoppingList: createdShoppingList,
-    }
+    // return the updated user
+    return updatedUser
   }
 }
 

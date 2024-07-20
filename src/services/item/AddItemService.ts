@@ -36,18 +36,11 @@ class AddItemService {
       },
     })
 
-    // find shopping list
-    const { id: shoppingListId } = await prismaClient.shoppingList.findFirst({
-      where: {
-        subscriptionId,
-      },
-    })
-
-    // using the name and shoppingListId, check if there is already an item with the same name
+    // using the name and subscriptionId, check if there is already an item with the same name
     const itemAlreadyExists = await prismaClient.item.findFirst({
       where: {
         name,
-        shoppingListId,
+        subscriptionId,
       },
     })
 
@@ -68,7 +61,7 @@ class AddItemService {
         price1,
         price2,
         price3,
-        shoppingListId,
+        subscriptionId,
       },
     })
 
