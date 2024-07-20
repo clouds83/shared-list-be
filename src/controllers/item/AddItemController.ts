@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { AddItemService } from '../../services/user/AddItemService'
+import { AddItemService } from '../../services/item/AddItemService'
 
 class AddItemController {
   async handle(req: Request, res: Response) {
