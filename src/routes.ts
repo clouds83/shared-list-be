@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router } from 'express'
 import { CreateUserController } from './controllers/user/CreateUserController'
 import { AuthUserController } from './controllers/user/AuthUserController'
 import { isAuthenticated } from './middlewares/isAuthenticated'
@@ -7,6 +7,7 @@ import { AddSecondaryUserController } from './controllers/user/AddSecondaryUserC
 import { AddItemController } from './controllers/item/AddItemController'
 import { UpdateItemController } from './controllers/item/UpdateItemController'
 import { GetAllItemsController } from './controllers/item/GetAllItemsController'
+import { DeleteItemController } from './controllers/item/DeleteItemController'
 
 const router = Router()
 
@@ -23,7 +24,7 @@ router.post('/add-secondary-user', isAuthenticated, new AddSecondaryUserControll
 /* ####### items routes ####### */
 router.post('/add-item', isAuthenticated, new AddItemController().handle)
 router.put('/update-item', isAuthenticated, new UpdateItemController().handle)
+router.delete('/delete-item', isAuthenticated, new DeleteItemController().handle)
 router.get('/all-items', isAuthenticated, new GetAllItemsController().handle)
-// delete item
 
 export { router }

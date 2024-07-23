@@ -33,7 +33,7 @@ class AuthUserService {
       }
     )
 
-    return { id: user.id, name: user.firstName, email: user.email, token: token }
+    return { id: user.id, name: user.firstName, email: user.email, subscriptionId: user.subscriptionId, token: token }
   }
 }
 
