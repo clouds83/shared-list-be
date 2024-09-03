@@ -15,15 +15,14 @@ class AuthUserService {
       },
     })
 
-    if (!user) throw new Error('Email/Password incorrect')
+    if (!user) throw new Error('Email not found')
 
     const passwordMatch = await compare(password, user.password)
 
-    if (!passwordMatch) throw new Error('Email/Password incorrect')
+    if (!passwordMatch) throw new Error('Password incorrect')
 
     const token = sign(
       {
-        name: user.firstName,
         email: user.email,
       },
       process.env.JWT_SECRET,

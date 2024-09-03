@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --transpile-only src/server.ts"
+    "dev": "ts-node-dev --transpile-only src/server.ts",
+    "dbpush": "npx prisma db push",
+    "dbstudio": "npx prisma studio",
+    "dbseed": "npx prisma db seed"
   },
   "author": "Claudio Godoy",
   "license": "ISC",

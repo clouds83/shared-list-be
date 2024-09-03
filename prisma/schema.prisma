@@ -1,13 +1,14 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
-
-// to create: npx prisma migrate dev --name init
 
 model User {
   id                String           @id @default(uuid())
@@ -40,7 +41,7 @@ model Item {
   id                String           @id @default(uuid())
   subscriptionId    String
   name              String
-  isBought          Boolean          @default(false)
+  isBought          Boolean?          @default(false)
   quantity          Int?
   unit              String?
   category          String?
