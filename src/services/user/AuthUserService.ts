@@ -9,30 +9,30 @@ interface AuthRequest {
 
 class AuthUserService {
   async execute({ email, password }: AuthRequest) {
-    const user = await prismaClient.user.findFirst({
+    const user = await prismaClient.user.findUnique({
       where: {
         email,
       },
     })
-
     if (!user) throw new Error('Email not found')
 
-    const passwordMatch = await compare(password, user.password)
+    const { id, firstName, lastName, subscriptionId, password: storedPassword } = user
 
+    const passwordMatch = await compare(password, storedPassword)
     if (!passwordMatch) throw new Error('Password incorrect')
 
     const token = sign(
       {
-        email: user.email,
+        email,
       },
       process.env.JWT_SECRET,
       {
-        subject: user.id,
+        subject: id, // user id
         expiresIn: '30d',
       }
     )
 
-    return { id: user.id, name: user.firstName, email: user.email, subscriptionId: user.subscriptionId, token: token }
+    return { id, firstName, lastName, email, subscriptionId, token }
   }
 }
 
