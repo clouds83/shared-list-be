@@ -43,7 +43,7 @@ class CreateUserService {
       },
     })
 
-    // update the user with the subscription ID
+    // add subscription ID
     const updatedUser = await prismaClient.user.update({
       where: {
         id: user.id,
@@ -62,7 +62,6 @@ class CreateUserService {
       },
     })
 
-    // return the updated user
     return updatedUser
   }
 }

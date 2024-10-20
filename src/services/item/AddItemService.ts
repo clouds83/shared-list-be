@@ -2,7 +2,6 @@ import prismaClient from '../../prisma'
 
 interface AddItemRequest {
   name: string
-  isBought: boolean
   quantity: number
   unit: string
   category: string
@@ -12,13 +11,12 @@ interface AddItemRequest {
   price1: number
   price2: number
   price3: number
-  user_id: string
+  subscriptionId: string
 }
 
 class AddItemService {
   async execute({
     name,
-    isBought,
     quantity,
     unit,
     category,
@@ -28,12 +26,20 @@ class AddItemService {
     price1,
     price2,
     price3,
-    user_id,
+    subscriptionId,
   }: AddItemRequest) {
-    const { subscriptionId } = await prismaClient.user.findFirst({
-      where: {
-        id: user_id,
-      },
+    console.log({
+      name,
+      quantity,
+      unit,
+      category,
+      price1Name,
+      price2Name,
+      price3Name,
+      price1,
+      price2,
+      price3,
+      subscriptionId,
     })
 
     // using the name and subscriptionId, check if there is already an item with the same name
@@ -51,7 +57,6 @@ class AddItemService {
     const createdItem = await prismaClient.item.create({
       data: {
         name,
-        isBought,
         quantity,
         unit,
         category,

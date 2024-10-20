@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dbpush": "npx prisma db push",
-    "dbstudio": "npx prisma studio"
+    "dbstudio": "npx prisma studio",
+    "dbseed": "npx prisma db seed"
   },
   "author": "Claudio Godoy",
   "license": "ISC",

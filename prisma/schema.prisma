@@ -10,8 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// to create: npx prisma migrate dev --name init
-
 model User {
   id                String           @id @default(uuid())
   email             String           @unique
@@ -43,7 +41,7 @@ model Item {
   id                String           @id @default(uuid())
   subscriptionId    String
   name              String
-  isBought          Boolean          @default(false)
+  isBought          Boolean?          @default(false)
   quantity          Int?
   unit              String?
   category          String?
