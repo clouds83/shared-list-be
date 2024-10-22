@@ -28,21 +28,10 @@ class AddItemService {
     price3,
     subscriptionId,
   }: AddItemRequest) {
-    console.log({
-      name,
-      quantity,
-      unit,
-      category,
-      price1Name,
-      price2Name,
-      price3Name,
-      price1,
-      price2,
-      price3,
-      subscriptionId,
-    })
+    if (!name || !subscriptionId) {
+      throw new Error('Missing required information')
+    }
 
-    // using the name and subscriptionId, check if there is already an item with the same name
     const itemAlreadyExists = await prismaClient.item.findFirst({
       where: {
         name,

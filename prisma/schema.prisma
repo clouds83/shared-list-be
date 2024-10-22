@@ -41,7 +41,7 @@ model Item {
   id                String           @id @default(uuid())
   subscriptionId    String
   name              String
-  isBought          Boolean?          @default(false)
+  isBought          Boolean?         @default(false)
   quantity          Int?
   unit              String?
   category          String?

@@ -8,7 +8,7 @@ class DeleteItemService {
 
     try {
       const deletedItem = await prismaClient.item.delete({
-        where: { id: id },
+        where: { id },
       })
 
       return deletedItem
