@@ -5,7 +5,7 @@ class GetAllItemsService {
   async execute(
     subscriptionId: string,
     page: number = 1,
-    pageSize: number = 10,
+    pageSize: number = 5,
     category?: string,
     sortOrder: 'asc' | 'desc' = 'asc',
     search?: string

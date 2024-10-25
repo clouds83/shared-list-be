@@ -7,7 +7,7 @@ class GetAllItemsController {
     const { subscriptionId } = req.body
     // page and pageSize from query parameters
     const page = parseInt(req.query.page as string) || 1
-    const pageSize = parseInt(req.query.pageSize as string) || 10
+    const pageSize = parseInt(req.query.pageSize as string) || 5
     const category = req.query.category as string
     const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'asc'
     const search = req.query.search as string
