@@ -1,26 +1,38 @@
 import prismaClient from '../../prisma'
+import { Prisma } from '@prisma/client'
 
 class GetAllItemsService {
-  async execute(subscriptionId: string, page: number, pageSize: number, category: string, sortOrder: 'asc' | 'desc') {
-    const items = await prismaClient.item.findMany({
-      where: {
-        subscriptionId,
-        category,
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: {
-        name: sortOrder,
-      },
-    })
+  async execute(
+    subscriptionId: string,
+    page: number = 1,
+    pageSize: number = 10,
+    category?: string,
+    sortOrder: 'asc' | 'desc' = 'asc',
+    search?: string
+  ) {
+    const whereClause: Prisma.ItemWhereInput = {
+      subscriptionId,
+      ...(category && { category }),
+      ...(search && {
+        name: {
+          contains: search,
+        },
+      }),
+    }
 
-    // for pagination UI
-    const totalItems = await prismaClient.item.count({
-      where: {
-        subscriptionId,
-        category,
-      },
-    })
+    const [items, totalItems] = await Promise.all([
+      prismaClient.item.findMany({
+        where: whereClause,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: {
+          name: sortOrder,
+        },
+      }),
+      prismaClient.item.count({
+        where: whereClause,
+      }),
+    ])
 
     return {
       items,

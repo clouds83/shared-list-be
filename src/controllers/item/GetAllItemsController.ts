@@ -10,10 +10,11 @@ class GetAllItemsController {
     const pageSize = parseInt(req.query.pageSize as string) || 10
     const category = req.query.category as string
     const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'asc'
+    const search = req.query.search as string
 
     const getAllItemsService = new GetAllItemsService()
 
-    const items = await getAllItemsService.execute(subscriptionId, page, pageSize, category, sortOrder)
+    const items = await getAllItemsService.execute(subscriptionId, page, pageSize, category, sortOrder, search)
 
     return res.json(items)
   }
