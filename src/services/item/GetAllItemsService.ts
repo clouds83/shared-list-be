@@ -4,10 +4,10 @@ import { Prisma } from '@prisma/client'
 class GetAllItemsService {
   async execute(
     subscriptionId: string,
-    page: number = 1,
-    pageSize: number = 5,
+    page: number,
+    pageSize: number,
+    sortOrder: 'asc' | 'desc',
     category?: string,
-    sortOrder: 'asc' | 'desc' = 'asc',
     search?: string
   ) {
     const whereClause: Prisma.ItemWhereInput = {
