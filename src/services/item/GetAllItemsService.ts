@@ -5,7 +5,7 @@ class GetAllItemsService {
   async execute(
     subscriptionId: string,
     page: number,
-    pageSize: number,
+    itemsPerPage: number,
     sortOrder: 'asc' | 'desc',
     category?: string,
     search?: string
@@ -23,8 +23,8 @@ class GetAllItemsService {
     const [items, totalItems] = await Promise.all([
       prismaClient.item.findMany({
         where: whereClause,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: (page - 1) * itemsPerPage,
+        take: itemsPerPage,
         orderBy: {
           name: sortOrder,
         },
@@ -37,7 +37,7 @@ class GetAllItemsService {
     return {
       items,
       totalItems,
-      totalPages: Math.ceil(totalItems / pageSize),
+      totalPages: Math.ceil(totalItems / itemsPerPage),
       currentPage: page,
     }
   }

@@ -3,7 +3,7 @@ import prismaClient from '../../prisma'
 interface UpdateItemRequest {
   id: string
   name?: string
-  isBought?: boolean
+  shouldBuy?: boolean
   quantity?: number
   unit?: string
   category?: string
@@ -19,7 +19,7 @@ class UpdateItemService {
   async execute({
     id,
     name,
-    isBought,
+    shouldBuy,
     quantity,
     unit,
     category,
@@ -34,19 +34,20 @@ class UpdateItemService {
       throw new Error('Item ID is required')
     }
 
-    if (
-      !name &&
-      !isBought &&
-      !quantity &&
-      !unit &&
-      !category &&
-      !price1Name &&
-      !price2Name &&
-      !price3Name &&
-      !price1 &&
-      !price2 &&
-      !price3
-    ) {
+    const hasAtLeastOneField =
+      name !== undefined ||
+      shouldBuy !== undefined ||
+      quantity !== undefined ||
+      unit !== undefined ||
+      category !== undefined ||
+      price1Name !== undefined ||
+      price2Name !== undefined ||
+      price3Name !== undefined ||
+      price1 !== undefined ||
+      price2 !== undefined ||
+      price3 !== undefined
+
+    if (!hasAtLeastOneField) {
       throw new Error('At least one field must be informed to update the item')
     }
 
@@ -55,7 +56,7 @@ class UpdateItemService {
         where: { id },
         data: {
           name,
-          isBought,
+          shouldBuy,
           quantity,
           unit,
           category,
