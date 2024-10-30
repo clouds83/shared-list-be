@@ -14,9 +14,18 @@ class GetAllItemsService {
       subscriptionId,
       ...(category && { category }),
       ...(search && {
-        name: {
-          contains: search,
-        },
+        OR: [
+          {
+            name: {
+              contains: search,
+            },
+          },
+          {
+            category: {
+              contains: search,
+            },
+          },
+        ],
       }),
     }
 
@@ -25,9 +34,7 @@ class GetAllItemsService {
         where: whereClause,
         skip: (page - 1) * itemsPerPage,
         take: itemsPerPage,
-        orderBy: {
-          name: sortOrder,
-        },
+        orderBy: [{ shouldBuy: 'desc' }, { name: sortOrder }],
       }),
       prismaClient.item.count({
         where: whereClause,
