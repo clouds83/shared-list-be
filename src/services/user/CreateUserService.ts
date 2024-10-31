@@ -4,13 +4,15 @@ import { hash } from 'bcryptjs'
 interface CreateUserRequest {
   firstName: string
   lastName: string
-  email: string
+  rawEmail: string
   password: string
 }
 
 class CreateUserService {
-  async execute({ firstName, lastName, email, password }: CreateUserRequest) {
-    if (!email) throw new Error('Email incorrect')
+  async execute({ firstName, lastName, rawEmail, password }: CreateUserRequest) {
+    if (!rawEmail) throw new Error('Email incorrect')
+
+    const email = rawEmail.trim()
 
     // check if user already exists
     const userAlreadyExists = await prismaClient.user.findFirst({

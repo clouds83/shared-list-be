@@ -4,14 +4,14 @@ import { AddSecondaryUserService } from '../../services/user/AddSecondaryUserSer
 class AddSecondaryUserController {
   async handle(req: Request, res: Response) {
     const { user_id: subscription_owner_id } = req
-    const { firstName, lastName, email, password } = req.body
+    const { firstName, lastName, email: rawEmail, password } = req.body
 
     const createAddSecondaryUserService = new AddSecondaryUserService()
 
     const user = await createAddSecondaryUserService.execute({
       firstName,
       lastName,
-      email,
+      rawEmail,
       password,
       subscription_owner_id,
     })
