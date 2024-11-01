@@ -18,11 +18,13 @@ class GetAllItemsService {
           {
             name: {
               contains: search,
+              mode: 'insensitive',
             },
           },
           {
             category: {
               contains: search,
+              mode: 'insensitive',
             },
           },
         ],
