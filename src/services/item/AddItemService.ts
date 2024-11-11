@@ -1,3 +1,4 @@
+import { InputJsonValue } from '@prisma/client/runtime/library'
 import prismaClient from '../../prisma'
 
 interface AddItemRequest {
@@ -5,29 +6,12 @@ interface AddItemRequest {
   quantity: number
   unit: string
   category: string
-  price1Name: string
-  price2Name: string
-  price3Name: string
-  price1: number
-  price2: number
-  price3: number
+  prices: InputJsonValue
   subscriptionId: string
 }
 
 class AddItemService {
-  async execute({
-    name,
-    quantity,
-    unit,
-    category,
-    price1Name,
-    price2Name,
-    price3Name,
-    price1,
-    price2,
-    price3,
-    subscriptionId,
-  }: AddItemRequest) {
+  async execute({ name, quantity, unit, category, prices, subscriptionId }: AddItemRequest) {
     if (!name || !subscriptionId) {
       throw new Error('Missing required information')
     }
@@ -49,12 +33,7 @@ class AddItemService {
         quantity,
         unit,
         category,
-        price1Name,
-        price2Name,
-        price3Name,
-        price1,
-        price2,
-        price3,
+        prices,
         subscriptionId,
       },
     })

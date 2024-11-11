@@ -1,3 +1,4 @@
+import { InputJsonValue } from '@prisma/client/runtime/library'
 import prismaClient from '../../prisma'
 
 interface UpdateItemRequest {
@@ -7,29 +8,11 @@ interface UpdateItemRequest {
   quantity?: number
   unit?: string
   category?: string
-  price1Name?: string
-  price2Name?: string
-  price3Name?: string
-  price1?: number
-  price2?: number
-  price3?: number
+  prices?: InputJsonValue
 }
 
 class UpdateItemService {
-  async execute({
-    id,
-    name,
-    shouldBuy,
-    quantity,
-    unit,
-    category,
-    price1Name,
-    price2Name,
-    price3Name,
-    price1,
-    price2,
-    price3,
-  }: UpdateItemRequest) {
+  async execute({ id, name, shouldBuy, quantity, unit, category, prices }: UpdateItemRequest) {
     if (!id) {
       throw new Error('Item ID is required')
     }
@@ -40,12 +23,7 @@ class UpdateItemService {
       quantity !== undefined ||
       unit !== undefined ||
       category !== undefined ||
-      price1Name !== undefined ||
-      price2Name !== undefined ||
-      price3Name !== undefined ||
-      price1 !== undefined ||
-      price2 !== undefined ||
-      price3 !== undefined
+      prices !== undefined
 
     if (!hasAtLeastOneField) {
       throw new Error('At least one field must be informed to update the item')
@@ -60,12 +38,7 @@ class UpdateItemService {
           quantity,
           unit,
           category,
-          price1Name,
-          price2Name,
-          price3Name,
-          price1,
-          price2,
-          price3,
+          prices,
         },
       })
 
