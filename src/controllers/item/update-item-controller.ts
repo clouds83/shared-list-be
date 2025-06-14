@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
-import { UpdateItemService } from '../../services/item/UpdateItemService'
+import { UpdateItemService } from '../../services/item/update-item-service'
 
 class UpdateItemController {
   async handle(req: Request, res: Response) {
-    const { id, name, shouldBuy, quantity, unit, category, prices } = req.body
+    const { id, name, shouldBuy, quantity, unit, category, currentStock } = req.body
 
     const updateItemService = new UpdateItemService()
 
@@ -14,7 +14,7 @@ class UpdateItemController {
       quantity,
       unit,
       category,
-      prices,
+      currentStock,
     })
 
     return res.json(item)
