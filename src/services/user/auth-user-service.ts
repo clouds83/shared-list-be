@@ -19,13 +19,32 @@ class AuthUserService {
       where: {
         email,
       },
+      include: {
+        ownedSubscription: {
+          select: {
+            id: true,
+          },
+        },
+        membershipSubscription: {
+          select: {
+            subscriptionId: true,
+            canEdit: true,
+            isActive: true,
+          },
+        },
+      },
     })
     if (!user) throw new Error(genericErrorMessage)
 
-    const { id, firstName, lastName, subscriptionId, password: storedPassword } = user
+    const { id, firstName, lastName, password: storedPassword, ownedSubscription, membershipSubscription } = user
 
     const passwordMatch = await compare(password, storedPassword)
     if (!passwordMatch) throw new Error(genericErrorMessage)
+
+    // Determine the user's subscription (either owned or membership)
+    const subscriptionId = ownedSubscription?.id || membershipSubscription?.subscriptionId || null
+    const isOwner = !!ownedSubscription
+    const canEdit = isOwner || (membershipSubscription?.canEdit && membershipSubscription?.isActive) || false
 
     const token = sign(
       {
@@ -38,7 +57,16 @@ class AuthUserService {
       }
     )
 
-    return { id, firstName, lastName, email, subscriptionId, token }
+    return { 
+      id, 
+      firstName, 
+      lastName, 
+      email, 
+      subscriptionId, 
+      isOwner, 
+      canEdit, 
+      token 
+    }
   }
 }
 

@@ -1,55 +1,111 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider       = "postgresql"
-  url            = env("DATABASE_URL")
-  directUrl      = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id                String           @id @default(uuid())
-  email             String           @unique
-  firstName         String
-  lastName          String
-  password          String
-  subscriptionId    String?  
-  createdAt         DateTime?        @default(now())
-  updatedAt         DateTime?        @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique @db.VarChar(100)
+  firstName String   @db.VarChar(50)
+  lastName  String   @db.VarChar(50)
+  password  String   @db.VarChar(72)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  // Each user can only be in ONE subscription (either as owner or member)
+  ownedSubscription      Subscription?      @relation("SubscriptionOwner")
+  membershipSubscription SubscriptionMember?
+  
   @@map("users")
-  subscription      Subscription?    @relation("Subscription", fields: [subscriptionId], references: [id])
-  ownedSubscription Subscription?    @relation("Owner")
+  @@index([email])
 }
 
 model Subscription {
-  id                String           @id @default(uuid())
-  ownerId           String           @unique 
-  createdAt         DateTime?        @default(now())
-  updatedAt         DateTime?        @updatedAt
+  id             String   @id @default(uuid())
+  ownerId        String   @unique // One-to-one with owner
+  categories     String[] @default([]) // Array of category names for autocomplete
+  currencySymbol String   @default("$") @db.VarChar(5) // Currency symbol like $, R$, €, etc.
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  owner   User                 @relation("SubscriptionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members SubscriptionMember[] // Multiple members allowed
+  items   Item[]
 
   @@map("subscriptions")
-  users             User[]           @relation("Subscription")
-  owner             User             @relation("Owner", fields: [ownerId], references: [id])
-  items             Item[]           // Add this line
+  @@index([ownerId])
+  @@index([isActive])
+}
+
+// Members of a subscription (excluding the owner)
+model SubscriptionMember {
+  id             String   @id @default(uuid())
+  userId         String   @unique // Each user can only be a member of ONE subscription
+  subscriptionId String
+  joinedAt       DateTime @default(now())
+  isActive       Boolean  @default(true)
+  canEdit        Boolean  @default(false) // Allow member to edit the list
+
+  // Relationships
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_members")
+  @@index([subscriptionId])
+  @@index([isActive])
+}
+
+enum StockLevel {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 model Item {
-  id                String           @id @default(uuid())
-  subscriptionId    String
-  name              String
-  shouldBuy         Boolean?         @default(true)
-  quantity          Int?
-  unit              String?
-  category          String?
-  prices            Json? 
-  createdAt         DateTime?        @default(now())
-  updatedAt         DateTime?        @updatedAt
+  id             String      @id @default(uuid())
+  subscriptionId String
+  name           String      @db.VarChar(50)
+  shouldBuy      Boolean     @default(true)
+  quantity       Int?        @default(1)
+  unit           String?     @db.VarChar(20)
+  category       String?     @default("Uncategorized") @db.VarChar(50)
+  currentStock   StockLevel?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  @@map ("items")
-  subscription      Subscription     @relation(fields: [subscriptionId], references: [id]) // Updated relation
+  // Relationships
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  prices       ItemPrice[]
+
+  @@map("items")
+  // Optimized indexes for large datasets
+  @@index([subscriptionId]) // Most common query pattern
+  @@index([subscriptionId, shouldBuy]) // Compound index for filtering
+  @@index([subscriptionId, category]) // Category filtering within subscription
+  @@index([subscriptionId, createdAt]) // Chronological ordering
+  @@index([subscriptionId, updatedAt]) // Recently modified items
+}
+
+model ItemPrice {
+  id        String   @id @default(uuid())
+  itemId    String
+  price     Decimal  @db.Decimal(10, 2)
+  store     String?  @db.VarChar(50)
+  createdAt DateTime @default(now())
+
+  // Relationships
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("item_prices")
+  // Optimized indexes for price queries
+  @@index([itemId]) // Get all prices for an item
+  @@index([itemId, createdAt]) // For price history queries
+  @@index([createdAt]) // For cleanup/archival jobs
+  @@index([store]) // Price comparison by store
 }

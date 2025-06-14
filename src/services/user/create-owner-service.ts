@@ -1,15 +1,15 @@
 import prismaClient from '../../prisma'
 import { hash } from 'bcryptjs'
 
-interface CreateUserRequest {
+interface CreateOwnerRequest {
   firstName: string
   lastName: string
   rawEmail: string
   password: string
 }
 
-class CreateUserService {
-  async execute({ firstName, lastName, rawEmail, password }: CreateUserRequest) {
+class CreateOwnerService {
+  async execute({ firstName, lastName, rawEmail, password }: CreateOwnerRequest) {
     if (!rawEmail) throw new Error('Email incorrect')
 
     const email = rawEmail.trim()
@@ -45,27 +45,29 @@ class CreateUserService {
       },
     })
 
-    // add subscription ID
-    const updatedUser = await prismaClient.user.update({
+    // return user data with subscription info
+    const userWithSubscription = await prismaClient.user.findUnique({
       where: {
         id: user.id,
-      },
-      data: {
-        subscriptionId: subscription.id,
       },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
-        subscriptionId: true,
         createdAt: true,
         updatedAt: true,
+        ownedSubscription: {
+          select: {
+            id: true,
+            createdAt: true,
+          },
+        },
       },
     })
 
-    return updatedUser
+    return userWithSubscription
   }
 }
 
-export { CreateUserService }
+export { CreateOwnerService }

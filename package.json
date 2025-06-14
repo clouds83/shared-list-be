@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "dbpush": "npx prisma db push",
     "dbstudio": "npx prisma studio",
-    "dbseed": "npx prisma db seed"
+    "dbseed": "npx prisma db seed",
+    "dbreset": "npx prisma migrate reset"
   },
   "author": "Claudio Godoy",
   "license": "ISC",
