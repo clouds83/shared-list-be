@@ -9,10 +9,6 @@ interface AddItemRequest {
   category?: string // Optional, defaults to "Uncategorized"
   currentStock?: StockLevel // Optional stock level
   shouldBuy?: boolean // Optional, defaults to true
-  initialPrice?: {
-    price: number
-    store?: string
-  }
 }
 
 class AddItemService {
@@ -23,8 +19,7 @@ class AddItemService {
     unit, 
     category, 
     currentStock, 
-    shouldBuy = true,
-    initialPrice 
+    shouldBuy = true 
   }: AddItemRequest) {
     if (!name?.trim() || !subscriptionId) {
       throw new Error('Item name and subscription ID are required')
@@ -60,16 +55,6 @@ class AddItemService {
       },
     })
 
-    // Create initial price if provided
-    if (initialPrice && initialPrice.price > 0) {
-      await prismaClient.itemPrice.create({
-        data: {
-          itemId: createdItem.id,
-          price: initialPrice.price,
-          store: initialPrice.store,
-        },
-      })
-    }
 
     // Update subscription categories if a new category was added
     if (category && category !== 'Uncategorized') {
@@ -88,13 +73,12 @@ class AddItemService {
       }
     }
 
-    // Return the created item with initial price if it exists
+    // Return the created item (prices will be empty initially)
     const itemWithPrice = await prismaClient.item.findUnique({
       where: { id: createdItem.id },
       include: {
         prices: {
           orderBy: { createdAt: 'desc' },
-          take: 1,
         },
       },
     })

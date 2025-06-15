@@ -11,9 +11,12 @@ class AddItemController {
       unit, 
       category, 
       currentStock, 
-      shouldBuy,
-      initialPrice 
+      shouldBuy 
     } = req.body
+
+    console.log('Received request body:', req.body)
+    console.log('Current stock value:', currentStock, 'Type:', typeof currentStock)
+    console.log('Should buy value:', shouldBuy, 'Type:', typeof shouldBuy)
 
     // Validate required fields
     if (!name?.trim()) {
@@ -31,12 +34,7 @@ class AddItemController {
       })
     }
 
-    // Validate initial price if provided
-    if (initialPrice && (typeof initialPrice.price !== 'number' || initialPrice.price < 0)) {
-      return res.status(400).json({ 
-        error: 'Initial price must be a non-negative number' 
-      })
-    }
+    // Prices can be added separately after item creation
 
     try {
       // TODO: Add subscription access validation here
@@ -51,7 +49,6 @@ class AddItemController {
         category,
         currentStock,
         shouldBuy,
-        initialPrice,
       })
 
       return res.status(201).json(item)
