@@ -1,5 +1,6 @@
 import prismaClient from '../../prisma'
 import { hash } from 'bcryptjs'
+import { sign } from 'jsonwebtoken'
 
 interface CreateOwnerRequest {
   firstName: string
@@ -45,28 +46,29 @@ class CreateOwnerService {
       },
     })
 
-    // return user data with subscription info
-    const userWithSubscription = await prismaClient.user.findUnique({
-      where: {
-        id: user.id,
+    // Generate JWT token
+    const token = sign(
+      {
+        email: user.email,
       },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        createdAt: true,
-        updatedAt: true,
-        ownedSubscription: {
-          select: {
-            id: true,
-            createdAt: true,
-          },
-        },
-      },
-    })
+      process.env.JWT_SECRET,
+      {
+        subject: user.id, // user id
+        expiresIn: '30d',
+      }
+    )
 
-    return userWithSubscription
+    // return user data with subscription info and token
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      subscriptionId: subscription.id,
+      isOwner: true,
+      canEdit: true,
+      token
+    }
   }
 }
 
