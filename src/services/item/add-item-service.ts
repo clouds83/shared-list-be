@@ -1,6 +1,11 @@
 import prismaClient from '../../prisma'
 import { StockLevel } from '@prisma/client'
 
+interface PriceData {
+  price: number;
+  store?: string;
+}
+
 interface AddItemRequest {
   name: string
   subscriptionId: string
@@ -9,6 +14,7 @@ interface AddItemRequest {
   category?: string // Optional, defaults to "Uncategorized"
   currentStock?: StockLevel // Optional stock level
   shouldBuy?: boolean // Optional, defaults to true
+  prices?: PriceData[]
 }
 
 class AddItemService {
@@ -19,68 +25,85 @@ class AddItemService {
     unit, 
     category, 
     currentStock, 
-    shouldBuy = true 
+    shouldBuy = true,
+    prices 
   }: AddItemRequest) {
     if (!name?.trim() || !subscriptionId) {
       throw new Error('Item name and subscription ID are required')
     }
+    
+    if (prices && prices.length > 3) {
+      throw new Error('You can add a maximum of 3 prices at a time.')
+    }
 
     const trimmedName = name.trim()
 
-    // Check if item already exists in this subscription
-    const existingItem = await prismaClient.item.findFirst({
-      where: {
-        name: {
-          equals: trimmedName,
-          mode: 'insensitive',
+    const itemWithPrice = await prismaClient.$transaction(async (prisma) => {
+      // Check if item already exists in this subscription
+      const existingItem = await prisma.item.findFirst({
+        where: {
+          name: {
+            equals: trimmedName,
+            mode: 'insensitive',
+          },
+          subscriptionId,
         },
-        subscriptionId,
-      },
-    })
-
-    if (existingItem) {
-      throw new Error('Item already exists in this subscription')
-    }
-
-    // Create the item with proper defaults
-    const createdItem = await prismaClient.item.create({
-      data: {
-        name: trimmedName,
-        subscriptionId,
-        quantity: quantity ?? 1,
-        unit,
-        category: category || 'Uncategorized',
-        currentStock,
-        shouldBuy,
-      },
-    })
-
-
-    // Update subscription categories if a new category was added
-    if (category && category !== 'Uncategorized') {
-      const subscription = await prismaClient.subscription.findUnique({
-        where: { id: subscriptionId },
-        select: { categories: true },
       })
 
-      if (subscription && !subscription.categories.includes(category)) {
-        await prismaClient.subscription.update({
-          where: { id: subscriptionId },
-          data: {
-            categories: [...subscription.categories, category],
-          },
+      if (existingItem) {
+        throw new Error('Item already exists in this subscription')
+      }
+
+      // Create the item
+      const createdItem = await prisma.item.create({
+        data: {
+          name: trimmedName,
+          subscriptionId,
+          quantity: quantity ?? 1,
+          unit,
+          category: category || 'Uncategorized',
+          currentStock,
+          shouldBuy,
+        },
+      })
+
+      // Create prices if they were provided
+      if (prices && prices.length > 0) {
+        await prisma.itemPrice.createMany({
+          data: prices.map(p => ({
+            price: p.price,
+            store: p.store,
+            itemId: createdItem.id
+          }))
         })
       }
-    }
 
-    // Return the created item (prices will be empty initially)
-    const itemWithPrice = await prismaClient.item.findUnique({
-      where: { id: createdItem.id },
-      include: {
-        prices: {
-          orderBy: { createdAt: 'desc' },
+      // Update subscription categories if a new category was added
+      if (category && category !== 'Uncategorized') {
+        const subscription = await prisma.subscription.findUnique({
+          where: { id: subscriptionId },
+          select: { categories: true },
+        })
+
+        if (subscription && !subscription.categories.includes(category)) {
+          await prisma.subscription.update({
+            where: { id: subscriptionId },
+            data: {
+              categories: [...subscription.categories, category],
+            },
+          })
+        }
+      }
+
+      // Return the created item with its prices
+      return prisma.item.findUnique({
+        where: { id: createdItem.id },
+        include: {
+          prices: {
+            orderBy: { createdAt: 'desc' },
+          },
         },
-      },
+      })
     })
 
     return itemWithPrice

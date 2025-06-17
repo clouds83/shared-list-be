@@ -62,7 +62,6 @@ class GetAllItemsService {
               { price: 'asc' },        // Cheapest price first
               { createdAt: 'desc' },   // Most recent if tied
             ],
-            take: 1, // Get only the cheapest price
           },
         },
       }),

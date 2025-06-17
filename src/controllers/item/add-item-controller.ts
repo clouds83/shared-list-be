@@ -11,7 +11,8 @@ class AddItemController {
       unit, 
       category, 
       currentStock, 
-      shouldBuy 
+      shouldBuy,
+      prices // Expecting an array of prices
     } = req.body
 
     console.log('Received request body:', req.body)
@@ -34,7 +35,20 @@ class AddItemController {
       })
     }
 
-    // Prices can be added separately after item creation
+    // Validate prices if provided
+    if (prices) {
+      if (!Array.isArray(prices)) {
+        return res.status(400).json({ error: 'Prices must be an array.' });
+      }
+      if (prices.length > 3) {
+        return res.status(400).json({ error: 'You can add a maximum of 3 prices.' });
+      }
+      for (const price of prices) {
+        if (typeof price.price !== 'number' || price.price <= 0) {
+          return res.status(400).json({ error: 'Each price must have a valid positive number.' });
+        }
+      }
+    }
 
     try {
       // TODO: Add subscription access validation here
@@ -49,6 +63,7 @@ class AddItemController {
         category,
         currentStock,
         shouldBuy,
+        prices
       })
 
       return res.status(201).json(item)
