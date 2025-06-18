@@ -47,15 +47,14 @@ class GetAllItemsService {
       }),
     }
 
+    // Create custom ordering for stock levels: LOW -> MEDIUM -> HIGH
+    const stockOrderMap = { LOW: 1, MEDIUM: 2, HIGH: 3 }
+
     const [items, totalItems] = await Promise.all([
       prismaClient.item.findMany({
         where: whereClause,
         skip: (page - 1) * itemsPerPage,
         take: itemsPerPage,
-        orderBy: [
-          { shouldBuy: 'desc' }, // Always show items to buy first
-          { [sortBy]: sortOrder },
-        ],
         include: {
           prices: {
             orderBy: [
@@ -70,8 +69,42 @@ class GetAllItemsService {
       }),
     ])
 
+    // Apply custom sorting: shouldBuy first, then stock level (LOW->MEDIUM->HIGH), then by sortBy
+    const sortedItems = items.sort((a, b) => {
+      // First priority: shouldBuy (true first)
+      if (a.shouldBuy !== b.shouldBuy) {
+        return b.shouldBuy ? 1 : -1
+      }
+
+      // Second priority: stock level (LOW -> MEDIUM -> HIGH)
+      if (a.currentStock && b.currentStock) {
+        const aStockOrder = stockOrderMap[a.currentStock] || 999
+        const bStockOrder = stockOrderMap[b.currentStock] || 999
+        if (aStockOrder !== bStockOrder) {
+          return aStockOrder - bStockOrder
+        }
+      } else if (a.currentStock && !b.currentStock) {
+        return -1 // Items with stock come first
+      } else if (!a.currentStock && b.currentStock) {
+        return 1 // Items with stock come first
+      }
+
+      // Third priority: user-specified sorting
+      if (sortBy === 'name') {
+        const comparison = a.name.localeCompare(b.name)
+        return sortOrder === 'asc' ? comparison : -comparison
+      } else if (sortBy === 'createdAt' || sortBy === 'updatedAt') {
+        const aDate = new Date(a[sortBy]).getTime()
+        const bDate = new Date(b[sortBy]).getTime()
+        const comparison = aDate - bDate
+        return sortOrder === 'asc' ? comparison : -comparison
+      }
+
+      return 0
+    })
+
     return {
-      items,
+      items: sortedItems,
       totalItems,
       totalPages: Math.ceil(totalItems / itemsPerPage),
       currentPage: page,
