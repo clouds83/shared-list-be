@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { CreateOwnerController } from './controllers/user/create-owner-controller'
 import { AuthUserController } from './controllers/user/auth-user-controller'
+import { VerifyTokenController } from './controllers/user/verify-token-controller'
 import { isAuthenticated } from './middlewares/isAuthenticated'
 import { GetUserDetailsController } from './controllers/user/get-user-details-controller'
 import { CreateMemberController } from './controllers/user/create-member-controller'
@@ -18,6 +19,7 @@ const router = Router()
 /* ####### user routes ####### */
 router.post('/create-owner', new CreateOwnerController().handle)
 router.post('/authenticate', new AuthUserController().handle)
+router.post('/verify-token', new VerifyTokenController().handle)
 router.get('/user', isAuthenticated, new GetUserDetailsController().handle)
 router.post('/create-member', isAuthenticated, new CreateMemberController().handle)
 router.get('/subscription-members', isAuthenticated, new GetSubscriptionMembersController().handle)
