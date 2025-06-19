@@ -13,6 +13,7 @@ import { GetAllItemsController } from './controllers/item/get-all-items-controll
 import { GetSingleItemController } from './controllers/item/get-single-item-controller'
 import { DeleteItemController } from './controllers/item/delete-item-controller'
 import { ManageItemPricesController } from './controllers/item/manage-item-prices-controller'
+import { GetSubscriptionController } from './controllers/subscription/get-subscription-controller'
 
 const router = Router()
 
@@ -21,11 +22,31 @@ router.post('/create-owner', new CreateOwnerController().handle)
 router.post('/authenticate', new AuthUserController().handle)
 router.post('/verify-token', new VerifyTokenController().handle)
 router.get('/user', isAuthenticated, new GetUserDetailsController().handle)
-router.post('/create-member', isAuthenticated, new CreateMemberController().handle)
-router.get('/subscription-members', isAuthenticated, new GetSubscriptionMembersController().handle)
-router.patch('/grant-edit-permission', isAuthenticated, new ManageMemberController().grantEditPermission)
-router.patch('/revoke-edit-permission', isAuthenticated, new ManageMemberController().revokeEditPermission)
-router.patch('/update-member-status', isAuthenticated, new ManageMemberController().updateMemberStatus)
+router.post(
+  '/create-member',
+  isAuthenticated,
+  new CreateMemberController().handle
+)
+router.get(
+  '/subscription-members',
+  isAuthenticated,
+  new GetSubscriptionMembersController().handle
+)
+router.patch(
+  '/grant-edit-permission',
+  isAuthenticated,
+  new ManageMemberController().grantEditPermission
+)
+router.patch(
+  '/revoke-edit-permission',
+  isAuthenticated,
+  new ManageMemberController().revokeEditPermission
+)
+router.patch(
+  '/update-member-status',
+  isAuthenticated,
+  new ManageMemberController().updateMemberStatus
+)
 // change password
 // get subscription details
 // delete user
@@ -34,13 +55,40 @@ router.patch('/update-member-status', isAuthenticated, new ManageMemberControlle
 /* ####### items routes ####### */
 router.post('/add-item', isAuthenticated, new AddItemController().handle)
 router.put('/update-item', isAuthenticated, new UpdateItemController().handle)
-router.delete('/delete-item', isAuthenticated, new DeleteItemController().handle)
+router.delete(
+  '/delete-item',
+  isAuthenticated,
+  new DeleteItemController().handle
+)
 router.get('/items', isAuthenticated, new GetAllItemsController().handle)
-router.get('/items/:itemId', isAuthenticated, new GetSingleItemController().handle)
+router.get(
+  '/items/:itemId',
+  isAuthenticated,
+  new GetSingleItemController().handle
+)
 
 /* ####### prices routes ####### */
-router.post('/item-prices', isAuthenticated, new ManageItemPricesController().addPrice)
-router.put('/item-prices/:priceId', isAuthenticated, new ManageItemPricesController().updatePrice)
-router.delete('/item-prices/:priceId', isAuthenticated, new ManageItemPricesController().deletePrice)
+router.post(
+  '/item-prices',
+  isAuthenticated,
+  new ManageItemPricesController().addPrice
+)
+router.put(
+  '/item-prices/:priceId',
+  isAuthenticated,
+  new ManageItemPricesController().updatePrice
+)
+router.delete(
+  '/item-prices/:priceId',
+  isAuthenticated,
+  new ManageItemPricesController().deletePrice
+)
+
+/* ####### subscription routes ####### */
+router.get(
+  '/subscription',
+  isAuthenticated,
+  new GetSubscriptionController().handle
+)
 
 export { router }
