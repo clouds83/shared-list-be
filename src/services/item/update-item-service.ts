@@ -93,9 +93,9 @@ class UpdateItemService {
             }
           }
 
-          // 3. Update subscription categories if a new category was added
-          if (normalizedCategory) {
-            // Get the item's subscription ID
+          // 3. Update subscription categories and units if new ones were added
+          if (normalizedCategory || normalizedUnit) {
+            // Get the item's subscription ID once
             const item = await prisma.item.findUnique({
               where: { id },
               select: { subscriptionId: true },
@@ -104,22 +104,38 @@ class UpdateItemService {
             if (item) {
               const subscription = await prisma.subscription.findUnique({
                 where: { id: item.subscriptionId },
-                select: { categories: true },
+                select: { categories: true, units: true },
               })
 
-              if (
-                subscription &&
-                !subscription.categories.includes(normalizedCategory)
-              ) {
-                await prisma.subscription.update({
-                  where: { id: item.subscriptionId },
-                  data: {
-                    categories: [
-                      ...subscription.categories,
-                      normalizedCategory,
-                    ],
-                  },
-                })
+              if (subscription) {
+                const updates: { categories?: string[]; units?: string[] } = {}
+
+                // Add new category if provided and not already exists
+                if (
+                  normalizedCategory &&
+                  !subscription.categories.includes(normalizedCategory)
+                ) {
+                  updates.categories = [
+                    ...subscription.categories,
+                    normalizedCategory,
+                  ]
+                }
+
+                // Add new unit if provided and not already exists
+                if (
+                  normalizedUnit &&
+                  !subscription.units.includes(normalizedUnit)
+                ) {
+                  updates.units = [...subscription.units, normalizedUnit]
+                }
+
+                // Update subscription only if there are changes
+                if (Object.keys(updates).length > 0) {
+                  await prisma.subscription.update({
+                    where: { id: item.subscriptionId },
+                    data: updates,
+                  })
+                }
               }
             }
           }

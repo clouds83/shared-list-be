@@ -28,6 +28,7 @@ model Subscription {
   id             String   @id @default(uuid())
   ownerId        String   @unique // One-to-one with owner
   categories     String[] @default([]) // Array of category names for autocomplete
+  units          String[] @default([]) // Array of unit names for autocomplete
   currencySymbol String   @default("$") @db.VarChar(5) // Currency symbol like $, R$, €, etc.
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())

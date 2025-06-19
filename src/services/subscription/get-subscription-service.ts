@@ -14,6 +14,7 @@ class GetSubscriptionService {
           select: {
             id: true,
             categories: true,
+            units: true,
             currencySymbol: true,
             isActive: true,
           },
@@ -27,6 +28,7 @@ class GetSubscriptionService {
               select: {
                 id: true,
                 categories: true,
+                units: true,
                 currencySymbol: true,
                 isActive: true,
               },
@@ -51,6 +53,7 @@ class GetSubscriptionService {
     return {
       id: subscription.id,
       categories: subscription.categories,
+      units: subscription.units,
       currencySymbol: subscription.currencySymbol,
       isActive: subscription.isActive,
       isOwner: !!user.ownedSubscription,

@@ -104,6 +104,23 @@ class AddItemService {
         }
       }
 
+      // Update subscription units if a new unit was added
+      if (normalizedUnit) {
+        const subscription = await prisma.subscription.findUnique({
+          where: { id: subscriptionId },
+          select: { units: true },
+        })
+
+        if (subscription && !subscription.units.includes(normalizedUnit)) {
+          await prisma.subscription.update({
+            where: { id: subscriptionId },
+            data: {
+              units: [...subscription.units, normalizedUnit],
+            },
+          })
+        }
+      }
+
       // Return the created item with its prices
       return prisma.item.findUnique({
         where: { id: createdItem.id },
