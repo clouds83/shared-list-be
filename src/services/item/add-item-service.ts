@@ -2,8 +2,8 @@ import prismaClient from '../../prisma'
 import { StockLevel } from '@prisma/client'
 
 interface PriceData {
-  price: number;
-  store?: string;
+  price: number
+  store?: string
 }
 
 interface AddItemRequest {
@@ -18,25 +18,31 @@ interface AddItemRequest {
 }
 
 class AddItemService {
-  async execute({ 
-    name, 
-    subscriptionId, 
-    quantity, 
-    unit, 
-    category, 
-    currentStock, 
+  async execute({
+    name,
+    subscriptionId,
+    quantity,
+    unit,
+    category,
+    currentStock,
     shouldBuy = true,
-    prices 
+    prices,
   }: AddItemRequest) {
     if (!name?.trim() || !subscriptionId) {
       throw new Error('Item name and subscription ID are required')
     }
-    
+
     if (prices && prices.length > 3) {
       throw new Error('You can add a maximum of 3 prices at a time.')
     }
 
     const trimmedName = name.trim()
+    // Convert category to lowercase for consistent storage, or null if empty
+    const normalizedCategory = category?.trim()
+      ? category.trim().toLowerCase()
+      : null
+    // Convert unit to lowercase for consistent storage, or null if empty
+    const normalizedUnit = unit?.trim() ? unit.trim().toLowerCase() : null
 
     const itemWithPrice = await prismaClient.$transaction(async (prisma) => {
       // Check if item already exists in this subscription
@@ -60,8 +66,8 @@ class AddItemService {
           name: trimmedName,
           subscriptionId,
           quantity: quantity ?? 1,
-          unit,
-          category: category || 'Uncategorized',
+          unit: normalizedUnit,
+          category: normalizedCategory,
           currentStock,
           shouldBuy,
         },
@@ -70,26 +76,29 @@ class AddItemService {
       // Create prices if they were provided
       if (prices && prices.length > 0) {
         await prisma.itemPrice.createMany({
-          data: prices.map(p => ({
+          data: prices.map((p) => ({
             price: p.price,
             store: p.store,
-            itemId: createdItem.id
-          }))
+            itemId: createdItem.id,
+          })),
         })
       }
 
       // Update subscription categories if a new category was added
-      if (category && category !== 'Uncategorized') {
+      if (normalizedCategory) {
         const subscription = await prisma.subscription.findUnique({
           where: { id: subscriptionId },
           select: { categories: true },
         })
 
-        if (subscription && !subscription.categories.includes(category)) {
+        if (
+          subscription &&
+          !subscription.categories.includes(normalizedCategory)
+        ) {
           await prisma.subscription.update({
             where: { id: subscriptionId },
             data: {
-              categories: [...subscription.categories, category],
+              categories: [...subscription.categories, normalizedCategory],
             },
           })
         }
@@ -110,4 +119,4 @@ class AddItemService {
   }
 }
 
-export { AddItemService } 
+export { AddItemService }
