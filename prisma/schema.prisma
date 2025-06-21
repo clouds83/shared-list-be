@@ -27,17 +27,17 @@ model User {
 model Subscription {
   id             String   @id @default(uuid())
   ownerId        String   @unique // One-to-one with owner
-  categories     String[] @default([]) // Array of category names for autocomplete
-  units          String[] @default([]) // Array of unit names for autocomplete
   currencySymbol String   @default("$") @db.VarChar(5) // Currency symbol like $, R$, €, etc.
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relationships
-  owner   User                 @relation("SubscriptionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members SubscriptionMember[] // Multiple members allowed
-  items   Item[]
+  owner      User                 @relation("SubscriptionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members    SubscriptionMember[] // Multiple members allowed
+  items      Item[]
+  categories Category[]
+  units      Unit[]
 
   @@map("subscriptions")
   @@index([ownerId])
@@ -68,27 +68,66 @@ enum StockLevel {
   HIGH
 }
 
+model Category {
+  id             String   @id @default(uuid())
+  name           String   @db.VarChar(50) // Category name in lowercase
+  subscriptionId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  items        Item[]
+
+  @@map("categories")
+  @@unique([name, subscriptionId]) // Unique constraint within subscription
+  @@index([subscriptionId])        // Index for subscription queries
+  @@index([subscriptionId, name])  // Compound index for lookups
+}
+
+model Unit {
+  id             String   @id @default(uuid())
+  name           String   @db.VarChar(20) // Unit name in lowercase
+  subscriptionId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  items        Item[]
+
+  @@map("units")
+  @@unique([name, subscriptionId]) // Unique constraint within subscription
+  @@index([subscriptionId])        // Index for subscription queries
+  @@index([subscriptionId, name])  // Compound index for lookups
+}
+
 model Item {
   id             String      @id @default(uuid())
   subscriptionId String
   name           String      @db.VarChar(50)
   shouldBuy      Boolean     @default(true)
   quantity       Int?        @default(1)
-  unit           String?     @db.VarChar(20)
-  category       String?     @default("Uncategorized") @db.VarChar(50)
+  categoryId     String?     // Foreign key to Category table (nullable)
+  unitId         String?     // Foreign key to Unit table (nullable)
   currentStock   StockLevel?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   // Relationships
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  unit         Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
   prices       ItemPrice[]
 
   @@map("items")
   // Optimized indexes for large datasets
   @@index([subscriptionId]) // Most common query pattern
   @@index([subscriptionId, shouldBuy]) // Compound index for filtering
-  @@index([subscriptionId, category]) // Category filtering within subscription
+  @@index([categoryId]) // Items by category
+  @@index([unitId]) // Items by unit
+  @@index([subscriptionId, categoryId]) // Items by subscription and category
+  @@index([subscriptionId, unitId]) // Items by subscription and unit
   @@index([subscriptionId, createdAt]) // Chronological ordering
   @@index([subscriptionId, updatedAt]) // Recently modified items
 }

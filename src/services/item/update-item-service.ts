@@ -1,5 +1,7 @@
 import prismaClient from '../../prisma'
 import { StockLevel } from '@prisma/client'
+import { findOrCreateCategory } from '../categoryService'
+import { findOrCreateUnit } from '../unitService'
 
 interface PriceData {
   price: number
@@ -61,15 +63,45 @@ class UpdateItemService {
     try {
       const updatedItemWithPrices = await prismaClient.$transaction(
         async (prisma) => {
-          // 1. Update the item's scalar fields
+          // Get the item's subscription ID for category/unit operations
+          const existingItem = await prisma.item.findUnique({
+            where: { id },
+            select: { subscriptionId: true },
+          })
+
+          if (!existingItem) {
+            throw new Error('Item not found')
+          }
+
+          // Find or create category if provided
+          let categoryId = undefined
+          if (normalizedCategory) {
+            const categoryObj = await findOrCreateCategory(existingItem.subscriptionId, normalizedCategory)
+            categoryId = categoryObj.id
+          } else if (category === '') {
+            // Empty string means remove category
+            categoryId = null
+          }
+
+          // Find or create unit if provided
+          let unitId = undefined
+          if (normalizedUnit) {
+            const unitObj = await findOrCreateUnit(existingItem.subscriptionId, normalizedUnit)
+            unitId = unitObj.id
+          } else if (unit === '') {
+            // Empty string means remove unit
+            unitId = null
+          }
+
+          // 1. Update the item's scalar fields and foreign keys
           const updatedItem = await prisma.item.update({
             where: { id },
             data: {
               name,
               shouldBuy,
               quantity,
-              unit: normalizedUnit,
-              category: normalizedCategory,
+              categoryId,
+              unitId,
               currentStock,
             },
           })
@@ -93,58 +125,13 @@ class UpdateItemService {
             }
           }
 
-          // 3. Update subscription categories and units if new ones were added
-          if (normalizedCategory || normalizedUnit) {
-            // Get the item's subscription ID once
-            const item = await prisma.item.findUnique({
-              where: { id },
-              select: { subscriptionId: true },
-            })
-
-            if (item) {
-              const subscription = await prisma.subscription.findUnique({
-                where: { id: item.subscriptionId },
-                select: { categories: true, units: true },
-              })
-
-              if (subscription) {
-                const updates: { categories?: string[]; units?: string[] } = {}
-
-                // Add new category if provided and not already exists
-                if (
-                  normalizedCategory &&
-                  !subscription.categories.includes(normalizedCategory)
-                ) {
-                  updates.categories = [
-                    ...subscription.categories,
-                    normalizedCategory,
-                  ]
-                }
-
-                // Add new unit if provided and not already exists
-                if (
-                  normalizedUnit &&
-                  !subscription.units.includes(normalizedUnit)
-                ) {
-                  updates.units = [...subscription.units, normalizedUnit]
-                }
-
-                // Update subscription only if there are changes
-                if (Object.keys(updates).length > 0) {
-                  await prisma.subscription.update({
-                    where: { id: item.subscriptionId },
-                    data: updates,
-                  })
-                }
-              }
-            }
-          }
-
-          // 4. Return the updated item with its prices
+          // 3. Return the updated item with its prices and related data
           return prisma.item.findUnique({
             where: { id },
             include: {
               prices: true,
+              category: true,
+              unit: true,
             },
           })
         }

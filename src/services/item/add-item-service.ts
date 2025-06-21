@@ -1,5 +1,7 @@
 import prismaClient from '../../prisma'
 import { StockLevel } from '@prisma/client'
+import { findOrCreateCategory } from '../categoryService'
+import { findOrCreateUnit } from '../unitService'
 
 interface PriceData {
   price: number
@@ -60,14 +62,28 @@ class AddItemService {
         throw new Error('Item already exists in this subscription')
       }
 
-      // Create the item
+      // Find or create category if provided
+      let categoryId = null
+      if (normalizedCategory) {
+        const categoryObj = await findOrCreateCategory(subscriptionId, normalizedCategory)
+        categoryId = categoryObj.id
+      }
+
+      // Find or create unit if provided
+      let unitId = null
+      if (normalizedUnit) {
+        const unitObj = await findOrCreateUnit(subscriptionId, normalizedUnit)
+        unitId = unitObj.id
+      }
+
+      // Create the item with foreign key references
       const createdItem = await prisma.item.create({
         data: {
           name: trimmedName,
           subscriptionId,
           quantity: quantity ?? 1,
-          unit: normalizedUnit,
-          category: normalizedCategory,
+          categoryId,
+          unitId,
           currentStock,
           shouldBuy,
         },
@@ -84,50 +100,15 @@ class AddItemService {
         })
       }
 
-      // Update subscription categories if a new category was added
-      if (normalizedCategory) {
-        const subscription = await prisma.subscription.findUnique({
-          where: { id: subscriptionId },
-          select: { categories: true },
-        })
-
-        if (
-          subscription &&
-          !subscription.categories.includes(normalizedCategory)
-        ) {
-          await prisma.subscription.update({
-            where: { id: subscriptionId },
-            data: {
-              categories: [...subscription.categories, normalizedCategory],
-            },
-          })
-        }
-      }
-
-      // Update subscription units if a new unit was added
-      if (normalizedUnit) {
-        const subscription = await prisma.subscription.findUnique({
-          where: { id: subscriptionId },
-          select: { units: true },
-        })
-
-        if (subscription && !subscription.units.includes(normalizedUnit)) {
-          await prisma.subscription.update({
-            where: { id: subscriptionId },
-            data: {
-              units: [...subscription.units, normalizedUnit],
-            },
-          })
-        }
-      }
-
-      // Return the created item with its prices
+      // Return the created item with its prices and related data
       return prisma.item.findUnique({
         where: { id: createdItem.id },
         include: {
           prices: {
             orderBy: { createdAt: 'desc' },
           },
+          category: true,
+          unit: true,
         },
       })
     })

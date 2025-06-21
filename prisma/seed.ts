@@ -10,6 +10,8 @@ async function main() {
   console.log('🧹 Cleaning existing data...')
   await prisma.itemPrice.deleteMany()
   await prisma.item.deleteMany()
+  await prisma.category.deleteMany()
+  await prisma.unit.deleteMany()
   await prisma.subscriptionMember.deleteMany()
   await prisma.subscription.deleteMany()
   await prisma.user.deleteMany()
@@ -43,7 +45,6 @@ async function main() {
     data: {
       ownerId: owner1.id,
       currencySymbol: '$',
-      categories: ['Groceries', 'Household', 'Electronics'],
     },
   })
 
@@ -51,7 +52,98 @@ async function main() {
     data: {
       ownerId: owner2.id,
       currencySymbol: 'R$',
-      categories: ['Comida', 'Casa', 'Tecnologia'],
+    },
+  })
+
+  // Create Categories for Subscription 1
+  console.log('🏷️ Creating categories for Subscription 1...')
+  const groceriesCategory = await prisma.category.create({
+    data: {
+      name: 'groceries',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  const householdCategory = await prisma.category.create({
+    data: {
+      name: 'household',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  const electronicsCategory = await prisma.category.create({
+    data: {
+      name: 'electronics',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  // Create Categories for Subscription 2
+  console.log('🏷️ Creating categories for Subscription 2...')
+  const comidaCategory = await prisma.category.create({
+    data: {
+      name: 'comida',
+      subscriptionId: subscription2.id,
+    },
+  })
+
+  const casaCategory = await prisma.category.create({
+    data: {
+      name: 'casa',
+      subscriptionId: subscription2.id,
+    },
+  })
+
+  const tecnologiaCategory = await prisma.category.create({
+    data: {
+      name: 'tecnologia',
+      subscriptionId: subscription2.id,
+    },
+  })
+
+  // Create Units for Subscription 1
+  console.log('📏 Creating units for Subscription 1...')
+  const litersUnit = await prisma.unit.create({
+    data: {
+      name: 'liters',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  const loafUnit = await prisma.unit.create({
+    data: {
+      name: 'loaf',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  const pieceUnit = await prisma.unit.create({
+    data: {
+      name: 'piece',
+      subscriptionId: subscription1.id,
+    },
+  })
+
+  // Create Units for Subscription 2
+  console.log('📏 Creating units for Subscription 2...')
+  const kgUnit = await prisma.unit.create({
+    data: {
+      name: 'kg',
+      subscriptionId: subscription2.id,
+    },
+  })
+
+  const gramasUnit = await prisma.unit.create({
+    data: {
+      name: 'gramas',
+      subscriptionId: subscription2.id,
+    },
+  })
+
+  const pieceUnit2 = await prisma.unit.create({
+    data: {
+      name: 'piece',
+      subscriptionId: subscription2.id,
     },
   })
 
@@ -137,8 +229,8 @@ async function main() {
       subscriptionId: subscription1.id,
       name: 'Milk',
       quantity: 2,
-      unit: 'liters',
-      category: 'Groceries',
+      unitId: litersUnit.id,
+      categoryId: groceriesCategory.id,
       shouldBuy: true,
       currentStock: StockLevel.LOW,
     },
@@ -149,8 +241,8 @@ async function main() {
       subscriptionId: subscription1.id,
       name: 'Bread',
       quantity: 1,
-      unit: 'loaf',
-      category: 'Groceries',
+      unitId: loafUnit.id,
+      categoryId: groceriesCategory.id,
       shouldBuy: true,
       currentStock: StockLevel.MEDIUM,
     },
@@ -161,8 +253,8 @@ async function main() {
       subscriptionId: subscription1.id,
       name: 'Laptop',
       quantity: 1,
-      unit: 'piece',
-      category: 'Electronics',
+      unitId: pieceUnit.id,
+      categoryId: electronicsCategory.id,
       shouldBuy: false,
       currentStock: StockLevel.HIGH,
     },
@@ -175,8 +267,8 @@ async function main() {
       subscriptionId: subscription2.id,
       name: 'Arroz',
       quantity: 1,
-      unit: 'kg',
-      category: 'Comida',
+      unitId: kgUnit.id,
+      categoryId: comidaCategory.id,
       shouldBuy: true,
       currentStock: StockLevel.LOW,
     },
@@ -187,8 +279,8 @@ async function main() {
       subscriptionId: subscription2.id,
       name: 'Feijão',
       quantity: 500,
-      unit: 'gramas',
-      category: 'Comida',
+      unitId: gramasUnit.id,
+      categoryId: comidaCategory.id,
       shouldBuy: true,
       currentStock: StockLevel.MEDIUM,
     },
@@ -199,8 +291,8 @@ async function main() {
       subscriptionId: subscription2.id,
       name: 'Smartphone',
       quantity: 1,
-      unit: 'piece',
-      category: 'Tecnologia',
+      unitId: pieceUnit2.id,
+      categoryId: tecnologiaCategory.id,
       shouldBuy: false,
       currentStock: StockLevel.HIGH,
     },
@@ -265,6 +357,8 @@ async function main() {
   console.log('\n📊 Summary:')
   console.log('👥 Users created: 6 (2 owners + 4 members)')
   console.log('📋 Subscriptions created: 2')
+  console.log('🏷️ Categories created: 6 (3 per subscription)')
+  console.log('📏 Units created: 6 (3 per subscription)')
   console.log('🔗 Memberships created: 4')
   console.log('🛒 Items created: 6')
   console.log('💰 Prices created: 15')

@@ -13,8 +13,6 @@ class GetSubscriptionService {
         ownedSubscription: {
           select: {
             id: true,
-            categories: true,
-            units: true,
             currencySymbol: true,
             isActive: true,
           },
@@ -27,8 +25,6 @@ class GetSubscriptionService {
             subscription: {
               select: {
                 id: true,
-                categories: true,
-                units: true,
                 currencySymbol: true,
                 isActive: true,
               },
@@ -50,10 +46,24 @@ class GetSubscriptionService {
       throw new Error('No subscription found for this user')
     }
 
+    // Fetch categories and units from separate tables
+    const [categories, units] = await Promise.all([
+      prismaClient.category.findMany({
+        where: { subscriptionId: subscription.id },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true }
+      }),
+      prismaClient.unit.findMany({
+        where: { subscriptionId: subscription.id },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true }
+      })
+    ])
+
     return {
       id: subscription.id,
-      categories: subscription.categories,
-      units: subscription.units,
+      categories: categories.map(cat => ({ id: cat.id, name: cat.name })),
+      units: units.map(unit => ({ id: unit.id, name: unit.name })),
       currencySymbol: subscription.currencySymbol,
       isActive: subscription.isActive,
       isOwner: !!user.ownedSubscription,

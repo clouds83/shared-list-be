@@ -26,7 +26,14 @@ class GetAllItemsService {
 
     const whereClause: Prisma.ItemWhereInput = {
       subscriptionId,
-      ...(category && category !== 'all' && { category }),
+      ...(category && category !== 'all' && { 
+        category: {
+          name: {
+            equals: category.toLowerCase(),
+            mode: 'insensitive'
+          }
+        }
+      }),
       ...(shouldBuy !== undefined && { shouldBuy }),
       ...(stockLevel && { currentStock: stockLevel }),
       ...(search && {
@@ -39,9 +46,11 @@ class GetAllItemsService {
           },
           {
             category: {
-              contains: search,
-              mode: 'insensitive',
-            },
+              name: {
+                contains: search,
+                mode: 'insensitive',
+              }
+            }
           },
         ],
       }),
@@ -62,6 +71,8 @@ class GetAllItemsService {
               { createdAt: 'desc' },   // Most recent if tied
             ],
           },
+          category: true,
+          unit: true,
         },
       }),
       prismaClient.item.count({

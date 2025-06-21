@@ -14,6 +14,14 @@ import { GetSingleItemController } from './controllers/item/get-single-item-cont
 import { DeleteItemController } from './controllers/item/delete-item-controller'
 import { ManageItemPricesController } from './controllers/item/manage-item-prices-controller'
 import { GetSubscriptionController } from './controllers/subscription/get-subscription-controller'
+import { GetCategoriesController } from './controllers/category/get-categories-controller'
+import { CreateCategoryController } from './controllers/category/create-category-controller'
+import { UpdateCategoryController } from './controllers/category/update-category-controller'
+import { DeleteCategoryController } from './controllers/category/delete-category-controller'
+import { GetUnitsController } from './controllers/unit/get-units-controller'
+import { CreateUnitController } from './controllers/unit/create-unit-controller'
+import { UpdateUnitController } from './controllers/unit/update-unit-controller'
+import { DeleteUnitController } from './controllers/unit/delete-unit-controller'
 
 const router = Router()
 
@@ -90,5 +98,17 @@ router.get(
   isAuthenticated,
   new GetSubscriptionController().handle
 )
+
+/* ####### category routes ####### */
+router.get('/categories', isAuthenticated, new GetCategoriesController().handle)
+router.post('/categories', isAuthenticated, new CreateCategoryController().handle)
+router.put('/categories/:categoryId', isAuthenticated, new UpdateCategoryController().handle)
+router.delete('/categories/:categoryId', isAuthenticated, new DeleteCategoryController().handle)
+
+/* ####### unit routes ####### */
+router.get('/units', isAuthenticated, new GetUnitsController().handle)
+router.post('/units', isAuthenticated, new CreateUnitController().handle)
+router.put('/units/:unitId', isAuthenticated, new UpdateUnitController().handle)
+router.delete('/units/:unitId', isAuthenticated, new DeleteUnitController().handle)
 
 export { router }
